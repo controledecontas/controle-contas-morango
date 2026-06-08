@@ -25,6 +25,7 @@ create table public.nota (
   fornecedor text,
   anexo_path text,
   obs text,
+  pago_por text not null default 'renan' check (pago_por in ('renan', 'outro')),
   created_at timestamptz not null default now()
 );
 
@@ -106,11 +107,17 @@ create trigger trg_upsert_sugestao
 -- ------------------------------------------------------------
 create or replace view public.saldo_corrente as
 select
-  coalesce(sum(valor_outro) filter (where not quitado), 0)::numeric(12,2) as a_receber,
-  coalesce(sum(valor_outro) filter (where quitado), 0)::numeric(12,2)     as ja_recebido,
-  coalesce(sum(valor) filter (where not quitado), 0)::numeric(12,2)       as total_aberto,
-  count(*) filter (where not quitado) as qtd_aberto
-from public.item;
+  coalesce(sum(case when n.pago_por = 'renan' then i.valor_outro else 0 end)
+           filter (where not i.quitado), 0)::numeric(12,2) as outro_deve,
+  coalesce(sum(case when n.pago_por = 'outro' then i.valor_meu else 0 end)
+           filter (where not i.quitado), 0)::numeric(12,2) as renan_deve,
+  coalesce(sum(case when n.pago_por = 'renan' then i.valor_outro
+                    else -i.valor_meu end)
+           filter (where not i.quitado), 0)::numeric(12,2) as saldo_liquido,
+  coalesce(sum(i.valor) filter (where not i.quitado), 0)::numeric(12,2) as total_aberto,
+  count(*) filter (where not i.quitado) as qtd_aberto
+from public.item i
+join public.nota n on n.id = i.nota_id;
 
 create or replace view public.resumo_mensal as
 select

@@ -37,20 +37,26 @@
     <!-- TAB: SALDO ----------------------------------------------------- -->
     <section id="tab-saldo" class="tab-content">
       <div class="card destaque">
-        <h2>A receber</h2>
-        <div class="saldo-big" id="saldoAReceber">R$ 0,00</div>
-        <div class="saldo-sub" id="saldoQtdAberto">0 itens em aberto</div>
+        <h2 id="saldoTituloPrincipal">Saldo líquido</h2>
+        <div class="saldo-big" id="saldoLiquido">R$ 0,00</div>
+        <div class="saldo-sub" id="saldoExplicacao">Quanto o outro deve ao Renan</div>
       </div>
       <div class="grid-2">
         <div class="card">
-          <h2>Total em aberto</h2>
-          <div style="font-size:22px; font-weight:600;" id="saldoTotalAberto">R$ 0,00</div>
-          <div class="saldo-sub">Contas pagas não acertadas</div>
+          <h2>Outro deve</h2>
+          <div style="font-size:22px; font-weight:600; color: var(--success);" id="saldoOutroDeve">R$ 0,00</div>
+          <div class="saldo-sub">Notas que Renan pagou</div>
         </div>
         <div class="card">
-          <h2>Já recebido</h2>
-          <div style="font-size:22px; font-weight:600; color: var(--success);" id="saldoJaRecebido">R$ 0,00</div>
-          <div class="saldo-sub">Acumulado histórico</div>
+          <h2>Renan deve</h2>
+          <div style="font-size:22px; font-weight:600; color: var(--accent);" id="saldoRenanDeve">R$ 0,00</div>
+          <div class="saldo-sub">Notas que o outro pagou</div>
+        </div>
+      </div>
+      <div class="card" style="padding: 12px 16px;">
+        <div style="display:flex; justify-content:space-between; font-size:13px;">
+          <span style="color:var(--muted);">Total em aberto</span>
+          <span><strong id="saldoTotalAberto">R$ 0,00</strong> · <span id="saldoQtdAberto">0 itens</span></span>
         </div>
       </div>
       <div class="card">
@@ -73,6 +79,18 @@
               <label for="fornecedor">Fornecedor</label>
               <input type="text" id="fornecedor" placeholder="ex: Agropecuária X" />
             </div>
+          </div>
+
+          <label>Quem pagou esta nota?</label>
+          <div class="radio-group">
+            <label class="radio-opt">
+              <input type="radio" name="pago_por" value="renan" checked />
+              <span>🙋 Renan pagou</span>
+            </label>
+            <label class="radio-opt">
+              <input type="radio" name="pago_por" value="outro" />
+              <span>👥 Outro pagou</span>
+            </label>
           </div>
 
           <label for="anexo">Foto da nota (opcional)</label>

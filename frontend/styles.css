@@ -119,6 +119,31 @@ button.danger {
 }
 button.danger:hover { background: #fee2e2; }
 
+/* Radio group ---------------------------------------------- */
+.radio-group {
+  display: flex; gap: 8px; margin-top: 4px;
+}
+.radio-opt {
+  flex: 1; display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; border: 1px solid var(--border);
+  border-radius: 8px; cursor: pointer; font-size: 14px;
+  background: #fff; transition: border-color .1s, background .1s;
+}
+.radio-opt:hover { border-color: var(--primary); }
+.radio-opt input[type="radio"] { width: auto; margin: 0; }
+.radio-opt:has(input:checked) {
+  border-color: var(--primary); background: var(--primary-soft);
+  font-weight: 600;
+}
+
+/* Badge pago_por no cabeçalho da nota ---------------------- */
+.badge-pago {
+  display: inline-block; padding: 2px 8px; border-radius: 12px;
+  font-size: 11px; font-weight: 600; margin-left: 6px;
+}
+.badge-pago.renan { background: var(--primary-soft); color: var(--primary); }
+.badge-pago.outro { background: #ffe4d6; color: var(--accent); }
+
 /* Lista de lançamentos ------------------------------------- */
 .lancamento {
   background: #fff; border: 1px solid var(--border);

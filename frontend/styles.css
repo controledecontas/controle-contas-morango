@@ -113,6 +113,11 @@ button.secondary {
   background: transparent; color: var(--primary); border: 1px solid var(--primary);
   padding: 10px 14px; border-radius: 8px; font-size: 14px; cursor: pointer;
 }
+button.danger {
+  background: transparent; color: var(--danger); border: 1px solid var(--danger);
+  padding: 10px 14px; border-radius: 8px; font-size: 14px; cursor: pointer;
+}
+button.danger:hover { background: #fee2e2; }
 
 /* Lista de lançamentos ------------------------------------- */
 .lancamento {
@@ -192,6 +197,13 @@ button.secondary {
   cursor: pointer; white-space: nowrap;
 }
 .btn-quitar-nota:hover { background: var(--primary-dark); }
+.btn-excluir-nota {
+  background: transparent; color: var(--danger); border: 1px solid transparent;
+  padding: 4px 8px; border-radius: 6px; font-size: 13px;
+  cursor: pointer; white-space: nowrap;
+}
+.btn-excluir-nota:hover { background: #fee2e2; border-color: var(--danger); }
+.nota-cab-acoes { display: flex; gap: 6px; align-items: center; }
 .btn-anexo {
   background: transparent; border: 0; cursor: pointer; padding: 0 2px;
   font-size: 14px;

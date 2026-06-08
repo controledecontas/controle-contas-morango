@@ -290,6 +290,12 @@ function renderLista() {
       quitarNotaInteira(el.dataset.id);
     });
   });
+  cont.querySelectorAll(".btn-excluir-nota").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      excluirNota(el.dataset.id);
+    });
+  });
   cont.querySelectorAll(".btn-anexo").forEach((el) => {
     el.addEventListener("click", async (e) => {
       e.stopPropagation();
@@ -314,7 +320,10 @@ function renderNotaBloco(n) {
         </div>
         <div class="nota-cab-sub">${n.itens.length} produto(s) · total ${fmtBRL(totalNota)}</div>
       </div>
-      ${algumAberto ? `<button class="btn-quitar-nota" data-id="${n.id}" title="Quitar tudo">Quitar nota</button>` : `<span class="badge quitado" style="margin:0;">tudo quitado</span>`}
+      <div class="nota-cab-acoes">
+        ${algumAberto ? `<button class="btn-quitar-nota" data-id="${n.id}" title="Quitar tudo">Quitar nota</button>` : `<span class="badge quitado" style="margin:0;">tudo quitado</span>`}
+        <button class="btn-excluir-nota" data-id="${n.id}" title="Excluir nota inteira">🗑️</button>
+      </div>
     </div>`;
 
   const linhasItens = n.itensVisiveis.map((i) => {
@@ -410,6 +419,17 @@ $("#btnAcaoModal").addEventListener("click", async () => {
   await recarregarTudo();
 });
 
+$("#btnExcluirItem").addEventListener("click", async () => {
+  const i = estado.itemSelecionado;
+  if (!i) return;
+  if (!confirm(`Excluir o item "${i.descricao}"? Essa ação não dá pra desfazer.`)) return;
+  const { error } = await sb.from("item").delete().eq("id", i.id);
+  if (error) { toast("Erro: " + error.message, "error"); return; }
+  toast("Item excluído", "success");
+  $("#modalDetalhe").classList.add("hidden");
+  await recarregarTudo();
+});
+
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && !$("#modalDetalhe").classList.contains("hidden")) {
     $("#modalDetalhe").classList.add("hidden");
@@ -428,6 +448,23 @@ async function quitarNotaInteira(notaId) {
   const { error } = await sb.from("item").update({ quitado: true }).in("id", idsAbertos);
   if (error) { toast("Erro: " + error.message, "error"); return; }
   toast("Nota quitada", "success");
+  await recarregarTudo();
+}
+
+async function excluirNota(notaId) {
+  const n = estado.notas.find((x) => x.id === notaId);
+  if (!n) return;
+  const total = n.itens.length;
+  if (!confirm(`Excluir esta nota inteira (${total} produto(s))${n.anexo_path ? " + a foto da nota" : ""}? Essa ação não dá pra desfazer.`)) return;
+
+  // Remove a foto do storage primeiro (se houver)
+  if (n.anexo_path) {
+    await sb.storage.from("notas").remove([n.anexo_path]);
+  }
+  // O CASCADE no FK item.nota_id remove os itens junto
+  const { error } = await sb.from("nota").delete().eq("id", notaId);
+  if (error) { toast("Erro: " + error.message, "error"); return; }
+  toast("Nota excluída", "success");
   await recarregarTudo();
 }
 

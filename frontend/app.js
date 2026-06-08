@@ -7,6 +7,10 @@
 const SENHA_HASH = "cb68a831f190efd097aa47c1b1b439f918f973c71c16898a6f2ac7fe6fe5c0fa";
 const STORAGE_KEY = "contas_morango_unlocked";
 
+// Nome do "outro" sócio — usado em mensagens visíveis. Se mudar de sócio um dia,
+// troca aqui e no index.html (busque por "Otavio").
+const NOME_OUTRO = "Otavio";
+
 async function sha256(txt) {
   const buf = new TextEncoder().encode(txt);
   const hash = await crypto.subtle.digest("SHA-256", buf);
@@ -132,10 +136,10 @@ async function carregarSaldo() {
   big.textContent = fmtBRL(Math.abs(saldo));
   if (saldo >= 0) {
     big.style.color = "var(--success)";
-    exp.textContent = saldo === 0 ? "Está tudo zerado" : "Outro deve ao Renan";
+    exp.textContent = saldo === 0 ? "Está tudo zerado" : `${NOME_OUTRO} deve ao Renan`;
   } else {
     big.style.color = "var(--accent)";
-    exp.textContent = "Renan deve ao outro";
+    exp.textContent = `Renan deve ao ${NOME_OUTRO}`;
   }
   $("#saldoOutroDeve").textContent = fmtBRL(data.outro_deve);
   $("#saldoRenanDeve").textContent = fmtBRL(data.renan_deve);
@@ -326,7 +330,7 @@ function renderNotaBloco(n) {
   const algumAberto = n.itens.some((i) => !i.quitado);
 
   const pagoBadge = n.pago_por === 'outro'
-    ? `<span class="badge-pago outro">👥 Outro pagou</span>`
+    ? `<span class="badge-pago outro">👥 ${NOME_OUTRO} pagou</span>`
     : `<span class="badge-pago renan">🙋 Renan pagou</span>`;
   const cabecalho = `
     <div class="nota-cabecalho">
@@ -346,16 +350,16 @@ function renderNotaBloco(n) {
   const linhasItens = n.itensVisiveis.map((i) => {
     const badge = i.quitado ? `<span class="badge quitado">quitado</span>` : `<span class="badge aberto">em aberto</span>`;
     // direção do saldo deste item:
-    //   - Renan pagou: outro deve valor_outro
-    //   - Outro pagou: Renan deve valor_meu
+    //   - Renan pagou: Otavio deve valor_outro
+    //   - Otavio pagou: Renan deve valor_meu
     const direcao = n.pago_por === 'renan'
-      ? `outro deve: ${fmtBRL(i.valor_outro)}`
+      ? `${NOME_OUTRO} deve: ${fmtBRL(i.valor_outro)}`
       : `Renan deve: ${fmtBRL(i.valor_meu)}`;
     return `
       <div class="item-linha ${i.quitado ? "quitado" : ""}" data-id="${i.id}">
         <div class="item-linha-desc">
           <div>${escapeHtml(i.descricao)} ${badge}</div>
-          <div class="item-linha-pct">${i.percentual_meu}% Renan · ${100 - i.percentual_meu}% outro</div>
+          <div class="item-linha-pct">${i.percentual_meu}% Renan · ${100 - i.percentual_meu}% ${NOME_OUTRO}</div>
         </div>
         <div class="item-linha-valores">
           <div class="item-linha-total">${fmtBRL(i.valor)}</div>
@@ -385,13 +389,13 @@ function renderUltimosAbertos() {
   }
   cont.innerHTML = top.map(({ nota, item }) => {
     const direcao = nota.pago_por === 'renan'
-      ? `outro deve: ${fmtBRL(item.valor_outro)}`
+      ? `${NOME_OUTRO} deve: ${fmtBRL(item.valor_outro)}`
       : `Renan deve: ${fmtBRL(item.valor_meu)}`;
     return `
     <div class="item-linha" data-id="${item.id}">
       <div class="item-linha-desc">
         <div>${escapeHtml(item.descricao)}</div>
-        <div class="item-linha-pct">${fmtData(nota.data)}${nota.fornecedor ? " · " + escapeHtml(nota.fornecedor) : ""} · ${nota.pago_por === 'renan' ? '🙋 Renan' : '👥 Outro'}</div>
+        <div class="item-linha-pct">${fmtData(nota.data)}${nota.fornecedor ? " · " + escapeHtml(nota.fornecedor) : ""} · ${nota.pago_por === 'renan' ? '🙋 Renan' : '👥 ' + NOME_OUTRO}</div>
       </div>
       <div class="item-linha-valores">
         <div class="item-linha-total">${fmtBRL(item.valor)}</div>
@@ -421,17 +425,17 @@ async function abrirDetalhe(id) {
   const { nota, item } = found;
   estado.itemSelecionado = item;
 
-  const pagoLabel = nota.pago_por === 'renan' ? '🙋 Renan' : '👥 Outro';
+  const pagoLabel = nota.pago_por === 'renan' ? '🙋 Renan' : `👥 ${NOME_OUTRO}`;
   const direcaoTexto = nota.pago_por === 'renan'
-    ? `<p style="color:var(--success);"><strong>Outro deve ao Renan:</strong> ${fmtBRL(item.valor_outro)}</p>`
-    : `<p style="color:var(--accent);"><strong>Renan deve ao outro:</strong> ${fmtBRL(item.valor_meu)}</p>`;
+    ? `<p style="color:var(--success);"><strong>${NOME_OUTRO} deve ao Renan:</strong> ${fmtBRL(item.valor_outro)}</p>`
+    : `<p style="color:var(--accent);"><strong>Renan deve ao ${NOME_OUTRO}:</strong> ${fmtBRL(item.valor_meu)}</p>`;
   $("#modalTitulo").textContent = item.descricao;
   $("#modalCorpo").innerHTML = `
     <p><strong>Nota:</strong> ${fmtData(nota.data)}${nota.fornecedor ? " · " + escapeHtml(nota.fornecedor) : ""}</p>
     <p><strong>Pago por:</strong> ${pagoLabel}</p>
     <p><strong>Valor:</strong> ${fmtBRL(item.valor)}</p>
     <p><strong>Parte Renan (${item.percentual_meu}%):</strong> ${fmtBRL(item.valor_meu)}</p>
-    <p><strong>Parte outro (${100 - item.percentual_meu}%):</strong> ${fmtBRL(item.valor_outro)}</p>
+    <p><strong>Parte ${NOME_OUTRO} (${100 - item.percentual_meu}%):</strong> ${fmtBRL(item.valor_outro)}</p>
     ${direcaoTexto}
     <p><strong>Status:</strong> ${item.quitado ? `Quitado em ${fmtData(item.data_quitacao)}` : "Em aberto"}</p>
     ${nota.obs ? `<p><strong>Obs da nota:</strong> ${escapeHtml(nota.obs)}</p>` : ""}

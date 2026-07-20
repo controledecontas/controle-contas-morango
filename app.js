@@ -1,50 +1,16 @@
-// =====================================================================
-// Controle de Contas - Morango
-// Modelo: NOTA (cabeçalho) + ITEM (produtos com % próprio)
-// =====================================================================
+// Controle de Contas — Morango (backend FastAPI proprio, sem Supabase)
 
-// SHA-256 da palavra-passe ("morango2026").
-const SENHA_HASH = "cb68a831f190efd097aa47c1b1b439f918f973c71c16898a6f2ac7fe6fe5c0fa";
+const API = APP_CONFIG.API_URL.replace(/\/+$/, "");
+const SENHA_HASH = "cb68a831f190efd097aa47c1b1b439f918f973c71c16898a6f2ac7fe6fe5c0fa"; // "morango2026"
 const STORAGE_KEY = "contas_morango_unlocked";
-
-// Nome do "outro" sócio — usado em mensagens visíveis. Se mudar de sócio um dia,
-// troca aqui e no index.html (busque por "Otavio").
 const NOME_OUTRO = "Otavio";
 
+// ---------- utils ----------
 async function sha256(txt) {
   const buf = new TextEncoder().encode(txt);
   const hash = await crypto.subtle.digest("SHA-256", buf);
   return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
-
-const $ = (sel) => document.querySelector(sel);
-const $$ = (sel) => document.querySelectorAll(sel);
-
-function mostrarTrava() {
-  $("#trava").classList.remove("hidden");
-  $("#app").classList.add("hidden");
-}
-function mostrarApp() {
-  $("#trava").classList.add("hidden");
-  $("#app").classList.remove("hidden");
-}
-
-$("#formTrava").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const senha = $("#senha").value;
-  const hash = await sha256(senha);
-  if (hash === SENHA_HASH) {
-    localStorage.setItem(STORAGE_KEY, "1");
-    $("#senha").value = "";
-    mostrarApp();
-    recarregarTudo();
-  } else {
-    toast("Senha incorreta", "error");
-  }
-});
-
-// =====================================================================
-const sb = supabase.createClient(APP_CONFIG.SUPABASE_URL, APP_CONFIG.SUPABASE_KEY);
 
 const fmtBRL = (n) =>
   (Number(n) || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -55,19 +21,9 @@ const fmtData = (d) => {
   return `${dd}/${m}/${y}`;
 };
 
-let estado = {
-  notas: [],        // [{ ...nota, itens: [...] }]
-  sugestoes: [],
-  filtroStatus: "aberto",
-  filtroBusca: "",
-  chartMes: null,
-  chartProduto: null,
-  itemSelecionado: null,
-};
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => document.querySelectorAll(s);
 
-// =====================================================================
-// Toast
-// =====================================================================
 function toast(msg, tipo = "") {
   const t = document.createElement("div");
   t.className = "toast " + tipo;
@@ -76,9 +32,63 @@ function toast(msg, tipo = "") {
   setTimeout(() => t.remove(), 3000);
 }
 
-// =====================================================================
-// Tabs
-// =====================================================================
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+// ---------- API wrapper ----------
+async function apiFetch(path, opts = {}) {
+  const url = API + path;
+  const res = await fetch(url, opts);
+  if (!res.ok) {
+    let msg = `HTTP ${res.status}`;
+    try {
+      const j = await res.json();
+      msg = j.detail || j.message || msg;
+    } catch (e) {}
+    throw new Error(msg);
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+// ---------- trava ----------
+function mostrarTrava() { $("#trava").classList.remove("hidden"); $("#app").classList.add("hidden"); }
+function mostrarApp() { $("#trava").classList.add("hidden"); $("#app").classList.remove("hidden"); }
+
+$("#formTrava").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const hash = await sha256($("#senha").value);
+  if (hash === SENHA_HASH) {
+    localStorage.setItem(STORAGE_KEY, "1");
+    $("#senha").value = "";
+    mostrarApp();
+    recarregarTudo();
+  } else {
+    toast("Senha incorreta", "error");
+  }
+});
+
+$("#btnTravar").addEventListener("click", () => {
+  if (confirm("Travar o app? Vai precisar digitar a senha pra entrar de novo.")) {
+    localStorage.removeItem(STORAGE_KEY);
+    mostrarTrava();
+  }
+});
+
+// ---------- estado ----------
+let estado = {
+  notas: [],
+  sugestoes: [],
+  filtroStatus: "aberto",
+  filtroBusca: "",
+  chartMes: null,
+  chartProduto: null,
+  itemSelecionado: null,
+};
+
+// ---------- tabs ----------
 $$(".tab").forEach((tab) => {
   tab.addEventListener("click", () => {
     $$(".tab").forEach((t) => t.classList.remove("active"));
@@ -90,46 +100,30 @@ $$(".tab").forEach((tab) => {
   });
 });
 
-// =====================================================================
-// Carregar dados
-// =====================================================================
+// ---------- carregar ----------
 async function recarregarTudo() {
-  await Promise.all([carregarNotasComItens(), carregarSugestoes(), carregarSaldo()]);
-  renderLista();
-  renderUltimosAbertos();
-}
-
-async function carregarNotasComItens() {
-  // Uma query só com join via sintaxe do supabase-js
-  const { data, error } = await sb
-    .from("nota")
-    .select("*, itens:item(*)")
-    .order("data", { ascending: false })
-    .order("created_at", { ascending: false });
-  if (error) {
-    toast("Erro ao carregar notas: " + error.message, "error");
-    return;
+  try {
+    const [notas, sug, saldo] = await Promise.all([
+      apiFetch("/api/notas"),
+      apiFetch("/api/sugestoes"),
+      apiFetch("/api/saldo"),
+    ]);
+    estado.notas = notas || [];
+    estado.sugestoes = sug || [];
+    renderSugestoes();
+    renderSaldo(saldo);
+    renderLista();
+    renderUltimosAbertos();
+  } catch (e) {
+    toast("Erro ao carregar: " + e.message, "error");
   }
-  estado.notas = (data || []).map((n) => ({
-    ...n,
-    itens: (n.itens || []).slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at)),
-  }));
 }
 
-async function carregarSugestoes() {
-  const { data, error } = await sb
-    .from("produto_sugestao")
-    .select("*")
-    .order("ultima_vez_usado", { ascending: false })
-    .limit(50);
-  if (error) return;
-  estado.sugestoes = data || [];
-  $("#sugestoes").innerHTML = estado.sugestoes.map((s) => `<option value="${s.nome}">`).join("");
+function renderSugestoes() {
+  $("#sugestoes").innerHTML = estado.sugestoes.map((s) => `<option value="${escapeHtml(s.nome)}">`).join("");
 }
 
-async function carregarSaldo() {
-  const { data, error } = await sb.from("saldo_corrente").select("*").single();
-  if (error) { console.error(error); return; }
+function renderSaldo(data) {
   const saldo = Number(data.saldo_liquido) || 0;
   const big = $("#saldoLiquido");
   const exp = $("#saldoExplicacao");
@@ -147,24 +141,16 @@ async function carregarSaldo() {
   $("#saldoQtdAberto").textContent = `${data.qtd_aberto} itens`;
 }
 
-// =====================================================================
-// Form: nova nota com itens dinâmicos
-// =====================================================================
+// ---------- form ----------
 $("#data").value = new Date().toISOString().slice(0, 10);
 
 function adicionarItem() {
   const tpl = $("#tplItem").content.cloneNode(true);
   const row = tpl.querySelector(".item-row");
   $("#itens").appendChild(row);
-
-  // listeners
   row.querySelector(".item-valor").addEventListener("input", atualizarPreview);
   row.querySelector(".item-pct").addEventListener("input", atualizarPreview);
-  row.querySelector(".btn-remover").addEventListener("click", () => {
-    row.remove();
-    atualizarPreview();
-  });
-  // auto-fill % quando descrição bate
+  row.querySelector(".btn-remover").addEventListener("click", () => { row.remove(); atualizarPreview(); });
   row.querySelector(".item-desc").addEventListener("change", (e) => {
     const nome = e.target.value.trim().toLowerCase();
     const s = estado.sugestoes.find((x) => x.nome === nome);
@@ -175,7 +161,6 @@ function adicionarItem() {
   });
   atualizarPreview();
 }
-
 $("#btnAddItem").addEventListener("click", adicionarItem);
 
 function lerItensDoForm() {
@@ -200,59 +185,44 @@ $("#formNota").addEventListener("submit", async (e) => {
   const btn = $("#btnSalvar");
 
   const itens = lerItensDoForm();
-  if (itens.length === 0) {
-    toast("Adicione pelo menos um produto", "error"); return;
-  }
+  if (itens.length === 0) { toast("Adicione pelo menos um produto", "error"); return; }
   for (const it of itens) {
-    if (!it.descricao || it.valor <= 0) {
-      toast("Preencha descrição e valor de todos os produtos", "error"); return;
-    }
+    if (!it.descricao || it.valor <= 0) { toast("Preencha descrição e valor de todos os produtos", "error"); return; }
   }
 
-  btn.disabled = true;
-  let anexo_path = null;
-  const arquivo = $("#anexo").files[0];
-  if (arquivo) {
-    const ext = arquivo.name.split(".").pop();
-    const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const { error: upErr } = await sb.storage.from("notas").upload(path, arquivo);
-    if (upErr) {
-      toast("Falha no upload da foto: " + upErr.message, "error");
-      btn.disabled = false; return;
-    }
-    anexo_path = path;
-  }
-
-  const pagoPor = document.querySelector('input[name="pago_por"]:checked')?.value || 'renan';
-  const { data: nota, error: notaErr } = await sb.from("nota").insert({
+  const pagoPor = document.querySelector('input[name="pago_por"]:checked')?.value || "renan";
+  const payload = {
     data: $("#data").value,
     fornecedor: $("#fornecedor").value.trim() || null,
     obs: $("#obs").value.trim() || null,
     pago_por: pagoPor,
-    anexo_path,
-  }).select().single();
-  if (notaErr) {
-    toast("Erro ao salvar nota: " + notaErr.message, "error");
-    btn.disabled = false; return;
+    itens,
+  };
+
+  btn.disabled = true;
+  try {
+    const fd = new FormData();
+    fd.append("payload", JSON.stringify(payload));
+    const arquivo = $("#anexo").files[0];
+    if (arquivo) fd.append("anexo", arquivo);
+
+    const res = await fetch(API + "/api/notas", { method: "POST", body: fd });
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}));
+      throw new Error(j.detail || `HTTP ${res.status}`);
+    }
+    toast("Nota salva!", "success");
+    resetarFormNota();
+    await recarregarTudo();
+    $$(".tab").forEach((t) => t.classList.remove("active"));
+    $('[data-tab="lista"]').classList.add("active");
+    $$(".tab-content").forEach((c) => c.classList.add("hidden"));
+    $("#tab-lista").classList.remove("hidden");
+  } catch (e) {
+    toast("Erro: " + e.message, "error");
+  } finally {
+    btn.disabled = false;
   }
-
-  const payloadItens = itens.map((i) => ({ ...i, nota_id: nota.id }));
-  const { error: itemErr } = await sb.from("item").insert(payloadItens);
-  if (itemErr) {
-    toast("Erro ao salvar itens: " + itemErr.message, "error");
-    btn.disabled = false; return;
-  }
-
-  toast("Nota salva!", "success");
-  resetarFormNota();
-  btn.disabled = false;
-  await recarregarTudo();
-
-  // muda pra Lista
-  $$(".tab").forEach((t) => t.classList.remove("active"));
-  $('[data-tab="lista"]').classList.add("active");
-  $$(".tab-content").forEach((c) => c.classList.add("hidden"));
-  $("#tab-lista").classList.remove("hidden");
 });
 
 function resetarFormNota() {
@@ -264,17 +234,9 @@ function resetarFormNota() {
   atualizarPreview();
 }
 
-// =====================================================================
-// Lista
-// =====================================================================
+// ---------- lista ----------
 $("#filtroStatus").addEventListener("change", (e) => { estado.filtroStatus = e.target.value; renderLista(); });
 $("#filtroBusca").addEventListener("input", (e) => { estado.filtroBusca = e.target.value.toLowerCase(); renderLista(); });
-
-function notaCasaBusca(nota, q) {
-  if (!q) return true;
-  if ((nota.fornecedor || "").toLowerCase().includes(q)) return true;
-  return nota.itens.some((i) => i.descricao.toLowerCase().includes(q));
-}
 
 function renderLista() {
   const cont = $("#listaNotas");
@@ -283,9 +245,9 @@ function renderLista() {
 
   const notasFiltradas = estado.notas
     .map((n) => {
-      let itens = n.itens;
-      if (fstatus === "aberto")  itens = itens.filter((i) => !i.quitado);
-      if (fstatus === "quitado") itens = itens.filter((i) =>  i.quitado);
+      let itens = n.itens || [];
+      if (fstatus === "aberto") itens = itens.filter((i) => !i.quitado);
+      if (fstatus === "quitado") itens = itens.filter((i) => i.quitado);
       if (q) itens = itens.filter((i) => i.descricao.toLowerCase().includes(q) || (n.fornecedor || "").toLowerCase().includes(q));
       return { ...n, itensVisiveis: itens };
     })
@@ -295,51 +257,39 @@ function renderLista() {
     cont.innerHTML = `<div class="empty">Nenhum lançamento encontrado.</div>`;
     return;
   }
-
   cont.innerHTML = notasFiltradas.map(renderNotaBloco).join("");
-
-  // listeners
   cont.querySelectorAll(".item-linha").forEach((el) => {
     el.addEventListener("click", () => abrirDetalhe(el.dataset.id));
   });
   cont.querySelectorAll(".btn-quitar-nota").forEach((el) => {
-    el.addEventListener("click", (e) => {
-      e.stopPropagation();
-      quitarNotaInteira(el.dataset.id);
-    });
+    el.addEventListener("click", (e) => { e.stopPropagation(); quitarNotaInteira(el.dataset.id); });
   });
   cont.querySelectorAll(".btn-excluir-nota").forEach((el) => {
-    el.addEventListener("click", (e) => {
-      e.stopPropagation();
-      excluirNota(el.dataset.id);
-    });
+    el.addEventListener("click", (e) => { e.stopPropagation(); excluirNota(el.dataset.id); });
   });
   cont.querySelectorAll(".btn-anexo").forEach((el) => {
-    el.addEventListener("click", async (e) => {
+    el.addEventListener("click", (e) => {
       e.stopPropagation();
-      const path = el.dataset.path;
-      const { data } = await sb.storage.from("notas").createSignedUrl(path, 3600);
-      if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+      window.open(API + `/api/notas/${el.dataset.id}/anexo`, "_blank");
     });
   });
 }
 
 function renderNotaBloco(n) {
-  const totalNota = n.itens.reduce((s, i) => s + Number(i.valor), 0);
-  const todosQuitados = n.itens.length > 0 && n.itens.every((i) => i.quitado);
-  const algumAberto = n.itens.some((i) => !i.quitado);
-
-  const pagoBadge = n.pago_por === 'outro'
+  const totalNota = (n.itens || []).reduce((s, i) => s + Number(i.valor), 0);
+  const algumAberto = (n.itens || []).some((i) => !i.quitado);
+  const pagoBadge = n.pago_por === "outro"
     ? `<span class="badge-pago outro">👥 ${NOME_OUTRO} pagou</span>`
     : `<span class="badge-pago renan">🙋 Renan pagou</span>`;
+
   const cabecalho = `
     <div class="nota-cabecalho">
       <div class="nota-cab-info">
         <div class="nota-cab-titulo">
           ${fmtData(n.data)} · ${n.fornecedor ? escapeHtml(n.fornecedor) : "<i style='color:var(--muted)'>sem fornecedor</i>"}
-          ${n.anexo_path ? `<button class="btn-anexo" data-path="${escapeHtml(n.anexo_path)}" title="Ver nota">📎</button>` : ""}
+          ${n.anexo_path ? `<button class="btn-anexo" data-id="${n.id}" title="Ver nota">📎</button>` : ""}
         </div>
-        <div class="nota-cab-sub">${pagoBadge} · ${n.itens.length} produto(s) · total ${fmtBRL(totalNota)}</div>
+        <div class="nota-cab-sub">${pagoBadge} · ${(n.itens || []).length} produto(s) · total ${fmtBRL(totalNota)}</div>
       </div>
       <div class="nota-cab-acoes">
         ${algumAberto ? `<button class="btn-quitar-nota" data-id="${n.id}" title="Quitar tudo">Quitar nota</button>` : `<span class="badge quitado" style="margin:0;">tudo quitado</span>`}
@@ -349,10 +299,7 @@ function renderNotaBloco(n) {
 
   const linhasItens = n.itensVisiveis.map((i) => {
     const badge = i.quitado ? `<span class="badge quitado">quitado</span>` : `<span class="badge aberto">em aberto</span>`;
-    // direção do saldo deste item:
-    //   - Renan pagou: Otavio deve valor_outro
-    //   - Otavio pagou: Renan deve valor_meu
-    const direcao = n.pago_por === 'renan'
+    const direcao = n.pago_por === "renan"
       ? `${NOME_OUTRO} deve: ${fmtBRL(i.valor_outro)}`
       : `Renan deve: ${fmtBRL(i.valor_meu)}`;
     return `
@@ -372,10 +319,9 @@ function renderNotaBloco(n) {
 }
 
 function renderUltimosAbertos() {
-  // Junta todos os itens em aberto, ordenados por data desc
   const linhas = [];
   estado.notas.forEach((n) => {
-    n.itens.forEach((i) => {
+    (n.itens || []).forEach((i) => {
       if (!i.quitado) linhas.push({ nota: n, item: i });
     });
   });
@@ -388,14 +334,14 @@ function renderUltimosAbertos() {
     return;
   }
   cont.innerHTML = top.map(({ nota, item }) => {
-    const direcao = nota.pago_por === 'renan'
+    const direcao = nota.pago_por === "renan"
       ? `${NOME_OUTRO} deve: ${fmtBRL(item.valor_outro)}`
       : `Renan deve: ${fmtBRL(item.valor_meu)}`;
     return `
     <div class="item-linha" data-id="${item.id}">
       <div class="item-linha-desc">
         <div>${escapeHtml(item.descricao)}</div>
-        <div class="item-linha-pct">${fmtData(nota.data)}${nota.fornecedor ? " · " + escapeHtml(nota.fornecedor) : ""} · ${nota.pago_por === 'renan' ? '🙋 Renan' : '👥 ' + NOME_OUTRO}</div>
+        <div class="item-linha-pct">${fmtData(nota.data)}${nota.fornecedor ? " · " + escapeHtml(nota.fornecedor) : ""} · ${nota.pago_por === "renan" ? "🙋 Renan" : "👥 " + NOME_OUTRO}</div>
       </div>
       <div class="item-linha-valores">
         <div class="item-linha-total">${fmtBRL(item.valor)}</div>
@@ -408,25 +354,23 @@ function renderUltimosAbertos() {
   });
 }
 
-// =====================================================================
-// Modal de detalhe (item)
-// =====================================================================
+// ---------- modal ----------
 function acharItem(id) {
   for (const n of estado.notas) {
-    const it = n.itens.find((i) => i.id === id);
+    const it = (n.itens || []).find((i) => i.id === id);
     if (it) return { nota: n, item: it };
   }
   return null;
 }
 
-async function abrirDetalhe(id) {
+function abrirDetalhe(id) {
   const found = acharItem(id);
   if (!found) return;
   const { nota, item } = found;
   estado.itemSelecionado = item;
 
-  const pagoLabel = nota.pago_por === 'renan' ? '🙋 Renan' : `👥 ${NOME_OUTRO}`;
-  const direcaoTexto = nota.pago_por === 'renan'
+  const pagoLabel = nota.pago_por === "renan" ? "🙋 Renan" : `👥 ${NOME_OUTRO}`;
+  const direcaoTexto = nota.pago_por === "renan"
     ? `<p style="color:var(--success);"><strong>${NOME_OUTRO} deve ao Renan:</strong> ${fmtBRL(item.valor_outro)}</p>`
     : `<p style="color:var(--accent);"><strong>Renan deve ao ${NOME_OUTRO}:</strong> ${fmtBRL(item.valor_meu)}</p>`;
   $("#modalTitulo").textContent = item.descricao;
@@ -439,6 +383,7 @@ async function abrirDetalhe(id) {
     ${direcaoTexto}
     <p><strong>Status:</strong> ${item.quitado ? `Quitado em ${fmtData(item.data_quitacao)}` : "Em aberto"}</p>
     ${nota.obs ? `<p><strong>Obs da nota:</strong> ${escapeHtml(nota.obs)}</p>` : ""}
+    ${nota.anexo_path ? `<p><a href="${API}/api/notas/${nota.id}/anexo" target="_blank">📎 Ver nota fiscal</a></p>` : ""}
   `;
   $("#btnAcaoModal").textContent = item.quitado ? "Reabrir (não quitado)" : "Marcar como quitado";
   $("#modalDetalhe").classList.remove("hidden");
@@ -450,22 +395,28 @@ $("#btnAcaoModal").addEventListener("click", async () => {
   const i = estado.itemSelecionado;
   if (!i) return;
   const novo = !i.quitado;
-  const { error } = await sb.from("item").update({ quitado: novo }).eq("id", i.id);
-  if (error) { toast("Erro: " + error.message, "error"); return; }
-  toast(novo ? "Marcado como quitado" : "Reaberto", "success");
-  $("#modalDetalhe").classList.add("hidden");
-  await recarregarTudo();
+  try {
+    await apiFetch(`/api/itens/${i.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ quitado: novo }),
+    });
+    toast(novo ? "Marcado como quitado" : "Reaberto", "success");
+    $("#modalDetalhe").classList.add("hidden");
+    await recarregarTudo();
+  } catch (e) { toast("Erro: " + e.message, "error"); }
 });
 
 $("#btnExcluirItem").addEventListener("click", async () => {
   const i = estado.itemSelecionado;
   if (!i) return;
   if (!confirm(`Excluir o item "${i.descricao}"? Essa ação não dá pra desfazer.`)) return;
-  const { error } = await sb.from("item").delete().eq("id", i.id);
-  if (error) { toast("Erro: " + error.message, "error"); return; }
-  toast("Item excluído", "success");
-  $("#modalDetalhe").classList.add("hidden");
-  await recarregarTudo();
+  try {
+    await apiFetch(`/api/itens/${i.id}`, { method: "DELETE" });
+    toast("Item excluído", "success");
+    $("#modalDetalhe").classList.add("hidden");
+    await recarregarTudo();
+  } catch (e) { toast("Erro: " + e.message, "error"); }
 });
 
 document.addEventListener("keydown", (e) => {
@@ -474,53 +425,36 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// =====================================================================
-// Quitar nota inteira
-// =====================================================================
+// ---------- quitar nota / excluir nota ----------
 async function quitarNotaInteira(notaId) {
   const n = estado.notas.find((x) => x.id === notaId);
   if (!n) return;
-  if (!confirm(`Marcar todos os ${n.itens.filter(i => !i.quitado).length} item(ns) em aberto desta nota como quitados?`)) return;
-  const idsAbertos = n.itens.filter((i) => !i.quitado).map((i) => i.id);
-  if (idsAbertos.length === 0) return;
-  const { error } = await sb.from("item").update({ quitado: true }).in("id", idsAbertos);
-  if (error) { toast("Erro: " + error.message, "error"); return; }
-  toast("Nota quitada", "success");
-  await recarregarTudo();
+  const abertos = (n.itens || []).filter((i) => !i.quitado);
+  if (abertos.length === 0) return;
+  if (!confirm(`Marcar todos os ${abertos.length} item(ns) em aberto desta nota como quitados?`)) return;
+  try {
+    await apiFetch(`/api/notas/${notaId}/quitar-tudo`, { method: "PATCH" });
+    toast("Nota quitada", "success");
+    await recarregarTudo();
+  } catch (e) { toast("Erro: " + e.message, "error"); }
 }
 
 async function excluirNota(notaId) {
   const n = estado.notas.find((x) => x.id === notaId);
   if (!n) return;
-  const total = n.itens.length;
+  const total = (n.itens || []).length;
   if (!confirm(`Excluir esta nota inteira (${total} produto(s))${n.anexo_path ? " + a foto da nota" : ""}? Essa ação não dá pra desfazer.`)) return;
-
-  // Remove a foto do storage primeiro (se houver)
-  if (n.anexo_path) {
-    await sb.storage.from("notas").remove([n.anexo_path]);
-  }
-  // O CASCADE no FK item.nota_id remove os itens junto
-  const { error } = await sb.from("nota").delete().eq("id", notaId);
-  if (error) { toast("Erro: " + error.message, "error"); return; }
-  toast("Nota excluída", "success");
-  await recarregarTudo();
+  try {
+    await apiFetch(`/api/notas/${notaId}`, { method: "DELETE" });
+    toast("Nota excluída", "success");
+    await recarregarTudo();
+  } catch (e) { toast("Erro: " + e.message, "error"); }
 }
 
-// =====================================================================
-// Botão travar
-// =====================================================================
-$("#btnTravar").addEventListener("click", () => {
-  if (confirm("Travar o app? Vai precisar digitar a senha pra entrar de novo.")) {
-    localStorage.removeItem(STORAGE_KEY);
-    mostrarTrava();
-  }
-});
-
-// =====================================================================
-// Dashboard
-// =====================================================================
+// ---------- dashboard ----------
 async function renderDashboard() {
-  const { data: mensal } = await sb.from("resumo_mensal").select("*").limit(12);
+  let mensal = [];
+  try { mensal = await apiFetch("/api/resumo-mensal"); } catch (e) {}
   const mensalOrdenado = (mensal || []).slice().reverse();
 
   if (estado.chartMes) estado.chartMes.destroy();
@@ -536,9 +470,8 @@ async function renderDashboard() {
     options: { responsive: true, scales: { x: { stacked: true }, y: { stacked: true, ticks: { callback: (v) => "R$ " + v } } } },
   });
 
-  // Top produtos em aberto (agrega itens de todas as notas)
   const porProduto = {};
-  estado.notas.forEach((n) => n.itens.forEach((i) => {
+  estado.notas.forEach((n) => (n.itens || []).forEach((i) => {
     if (i.quitado) return;
     const k = i.descricao.toLowerCase();
     porProduto[k] = (porProduto[k] || 0) + Number(i.valor);
@@ -559,19 +492,8 @@ async function renderDashboard() {
   });
 }
 
-// =====================================================================
-// Utils
-// =====================================================================
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, (c) => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
-  }[c]));
-}
-
-// =====================================================================
-// Boot
-// =====================================================================
-adicionarItem(); // 1 item inicial no form
+// ---------- boot ----------
+adicionarItem();
 if (localStorage.getItem(STORAGE_KEY) === "1") {
   mostrarApp();
   recarregarTudo();

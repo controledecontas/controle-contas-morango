@@ -34,7 +34,6 @@
       <div class="tab" data-tab="dashboard">Dashboard</div>
     </nav>
 
-    <!-- TAB: SALDO ----------------------------------------------------- -->
     <section id="tab-saldo" class="tab-content">
       <div class="card destaque">
         <h2 id="saldoTituloPrincipal">Saldo líquido</h2>
@@ -65,7 +64,6 @@
       </div>
     </section>
 
-    <!-- TAB: LANÇAR ---------------------------------------------------- -->
     <section id="tab-lancar" class="tab-content hidden">
       <div class="card">
         <h2>Nova nota</h2>
@@ -125,7 +123,6 @@
       </div>
     </section>
 
-    <!-- TAB: LISTA ----------------------------------------------------- -->
     <section id="tab-lista" class="tab-content hidden">
       <div class="filtros">
         <select id="filtroStatus">
@@ -138,7 +135,6 @@
       <div id="listaNotas"></div>
     </section>
 
-    <!-- TAB: DASHBOARD -------------------------------------------------- -->
     <section id="tab-dashboard" class="tab-content hidden">
       <div class="card">
         <h2>Gastos por mês</h2>
@@ -151,7 +147,6 @@
     </section>
   </div>
 
-  <!-- ============================== MODAL ============================== -->
   <div id="modalDetalhe" class="modal-backdrop hidden">
     <div class="modal">
       <h3 id="modalTitulo">Item</h3>
@@ -164,7 +159,6 @@
     </div>
   </div>
 
-  <!-- Template oculto pra uma linha de item no form -->
   <template id="tplItem">
     <div class="item-row">
       <div class="item-grid">
@@ -177,7 +171,7 @@
           <input type="number" class="item-valor" required step="0.01" min="0.01" inputmode="decimal" />
         </div>
         <div>
-          <label>Minha % </label>
+          <label>Minha %</label>
           <input type="number" class="item-pct" required step="0.01" min="0" max="100" value="50" inputmode="decimal" />
         </div>
         <button type="button" class="btn-remover" title="Remover">✕</button>
@@ -186,7 +180,6 @@
   </template>
   <datalist id="sugestoes"></datalist>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <script src="config.js"></script>
   <script src="app.js"></script>

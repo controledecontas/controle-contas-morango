@@ -1,0 +1,254 @@
+﻿[
+    {
+        "id":  "064055fb-71ba-4cc7-8724-9de54d1a4648",
+        "data":  "2026-06-08",
+        "fornecedor":  "Felinho",
+        "anexo_path":  null,
+        "obs":  null,
+        "created_at":  "2026-06-08T20:58:33.609349+00:00",
+        "pago_por":  "renan"
+    },
+    {
+        "id":  "2ec4908a-a293-40fc-a3a5-526cd4563a0c",
+        "data":  "2026-06-08",
+        "fornecedor":  "Felinho",
+        "anexo_path":  null,
+        "obs":  null,
+        "created_at":  "2026-06-11T13:54:37.105332+00:00",
+        "pago_por":  "renan"
+    },
+    {
+        "id":  "bc641fd7-dd0d-44c2-a9e2-20d9edeceb61",
+        "data":  "2026-06-11",
+        "fornecedor":  "Felinho",
+        "anexo_path":  null,
+        "obs":  null,
+        "created_at":  "2026-06-11T14:07:18.333398+00:00",
+        "pago_por":  "renan"
+    },
+    {
+        "id":  "2376aa63-d35d-485b-8dde-bf0c77ba0d28",
+        "data":  "2026-06-11",
+        "fornecedor":  "Dallemole",
+        "anexo_path":  null,
+        "obs":  null,
+        "created_at":  "2026-06-11T14:28:41.038219+00:00",
+        "pago_por":  "outro"
+    },
+    {
+        "id":  "d74a5be4-5f26-4ff3-b178-216898ec6f06",
+        "data":  "2026-06-11",
+        "fornecedor":  "Vila",
+        "anexo_path":  null,
+        "obs":  null,
+        "created_at":  "2026-06-11T14:37:15.00173+00:00",
+        "pago_por":  "renan"
+    },
+    {
+        "id":  "1e9658dd-2908-4802-92b6-11b9caad9be0",
+        "data":  "2026-06-11",
+        "fornecedor":  "Felinho",
+        "anexo_path":  null,
+        "obs":  null,
+        "created_at":  "2026-06-11T14:38:04.571717+00:00",
+        "pago_por":  "renan"
+    },
+    {
+        "id":  "809a2fda-c6d1-421b-8514-dab068ef518c",
+        "data":  "2026-06-02",
+        "fornecedor":  "Vila",
+        "anexo_path":  "1781189124435-r9hl4m.jpg",
+        "obs":  null,
+        "created_at":  "2026-06-11T14:45:26.847752+00:00",
+        "pago_por":  "renan"
+    },
+    {
+        "id":  "8f05523f-d75b-4c0a-be40-057788abd3c0",
+        "data":  "2026-05-06",
+        "fornecedor":  null,
+        "anexo_path":  "1781189332117-710avi.jpg",
+        "obs":  null,
+        "created_at":  "2026-06-11T14:48:54.417649+00:00",
+        "pago_por":  "renan"
+    },
+    {
+        "id":  "2d1c84f7-aaf8-4429-b01f-d0ac803e5dac",
+        "data":  "2026-02-09",
+        "fornecedor":  "Lero",
+        "anexo_path":  "1781189437986-ntqyta.jpg",
+        "obs":  null,
+        "created_at":  "2026-06-11T14:50:39.908641+00:00",
+        "pago_por":  "renan"
+    },
+    {
+        "id":  "7efc07b4-0bc6-433c-b79b-503d7fdd6cdd",
+        "data":  "2026-02-16",
+        "fornecedor":  "Lero",
+        "anexo_path":  "1781190199165-p0vc2f.jpg",
+        "obs":  null,
+        "created_at":  "2026-06-11T15:03:20.524573+00:00",
+        "pago_por":  "renan"
+    },
+    {
+        "id":  "0528d968-e71e-49e1-a16e-dcc6c88c92f2",
+        "data":  "2026-04-16",
+        "fornecedor":  "Lero",
+        "anexo_path":  "1781190268851-2n6148.jpg",
+        "obs":  null,
+        "created_at":  "2026-06-11T15:04:30.760222+00:00",
+        "pago_por":  "renan"
+    },
+    {
+        "id":  "e4770b8d-88f6-4b2c-8a7b-173d511d2566",
+        "data":  "2026-06-11",
+        "fornecedor":  "Lero",
+        "anexo_path":  "1781190348832-bgsyjm.jpg",
+        "obs":  null,
+        "created_at":  "2026-06-11T15:05:50.656781+00:00",
+        "pago_por":  "renan"
+    },
+    {
+        "id":  "d011e991-3ef1-4445-89b0-622cc9b04c61",
+        "data":  "2026-05-05",
+        "fornecedor":  "Lero",
+        "anexo_path":  "1781190406635-d2fujk.jpg",
+        "obs":  null,
+        "created_at":  "2026-06-11T15:06:47.71969+00:00",
+        "pago_por":  "renan"
+    },
+    {
+        "id":  "e9d9fe5b-5832-43e0-ad99-dc1465c6a9d4",
+        "data":  "2026-05-04",
+        "fornecedor":  "Lero",
+        "anexo_path":  "1781190517180-z57pli.jpg",
+        "obs":  null,
+        "created_at":  "2026-06-11T15:08:38.536624+00:00",
+        "pago_por":  "renan"
+    },
+    {
+        "id":  "089a6927-9036-4cec-88cc-50ec512c4b43",
+        "data":  "2026-04-29",
+        "fornecedor":  "Lero",
+        "anexo_path":  "1781190651655-1tsxik.jpg",
+        "obs":  null,
+        "created_at":  "2026-06-11T15:10:53.3156+00:00",
+        "pago_por":  "renan"
+    },
+    {
+        "id":  "c8edf174-6168-47c2-9330-ec292825fdc8",
+        "data":  "2026-04-24",
+        "fornecedor":  "Lero",
+        "anexo_path":  "1781190743699-2z1ufw.jpg",
+        "obs":  null,
+        "created_at":  "2026-06-11T15:12:24.73589+00:00",
+        "pago_por":  "renan"
+    },
+    {
+        "id":  "06b74fdd-5535-48ff-b2ba-0e0a5184a6c3",
+        "data":  "2026-03-18",
+        "fornecedor":  "Lero",
+        "anexo_path":  "1781190786161-oy2aek.jpg",
+        "obs":  null,
+        "created_at":  "2026-06-11T15:13:07.683946+00:00",
+        "pago_por":  "renan"
+    },
+    {
+        "id":  "257dc60a-1c46-4786-b77a-80ac41495f07",
+        "data":  "2026-06-11",
+        "fornecedor":  "Dallemole",
+        "anexo_path":  null,
+        "obs":  null,
+        "created_at":  "2026-06-11T15:17:10.062218+00:00",
+        "pago_por":  "renan"
+    },
+    {
+        "id":  "e28e9ce9-cc2e-4c4e-be8c-5a2ad70478bd",
+        "data":  "2026-06-11",
+        "fornecedor":  "Dallemole",
+        "anexo_path":  null,
+        "obs":  null,
+        "created_at":  "2026-06-11T15:17:53.913929+00:00",
+        "pago_por":  "renan"
+    },
+    {
+        "id":  "8bf6e6c4-d213-4176-aed2-00ac831dd775",
+        "data":  "2026-06-11",
+        "fornecedor":  "Dario",
+        "anexo_path":  null,
+        "obs":  null,
+        "created_at":  "2026-06-11T15:19:12.651618+00:00",
+        "pago_por":  "renan"
+    },
+    {
+        "id":  "9ca143a0-49af-4025-8ec6-fcfba75b1ec3",
+        "data":  "2026-06-11",
+        "fornecedor":  "Dallemole",
+        "anexo_path":  null,
+        "obs":  null,
+        "created_at":  "2026-06-11T15:20:07.878076+00:00",
+        "pago_por":  "renan"
+    },
+    {
+        "id":  "6c36b00d-18d2-483f-bdd2-58b41b698b5d",
+        "data":  "2026-06-11",
+        "fornecedor":  "Dallemole",
+        "anexo_path":  null,
+        "obs":  null,
+        "created_at":  "2026-06-11T15:20:59.862644+00:00",
+        "pago_por":  "outro"
+    },
+    {
+        "id":  "6bf43d30-fb78-4772-b5bd-b8cfe39b2b11",
+        "data":  "2026-06-11",
+        "fornecedor":  "Dallemole",
+        "anexo_path":  null,
+        "obs":  null,
+        "created_at":  "2026-06-11T15:22:58.459134+00:00",
+        "pago_por":  "renan"
+    },
+    {
+        "id":  "39daf91c-0880-4069-b0de-44f387f6648b",
+        "data":  "2026-06-11",
+        "fornecedor":  "Mudas Daniel",
+        "anexo_path":  null,
+        "obs":  null,
+        "created_at":  "2026-06-11T15:25:13.96343+00:00",
+        "pago_por":  "outro"
+    },
+    {
+        "id":  "d4f6a90f-d238-4182-95bb-4b9af224bca4",
+        "data":  "2026-06-11",
+        "fornecedor":  "Rodrigo",
+        "anexo_path":  null,
+        "obs":  null,
+        "created_at":  "2026-06-11T15:26:44.333069+00:00",
+        "pago_por":  "outro"
+    },
+    {
+        "id":  "25c8a4a9-4b55-4669-9752-5611330b4ff2",
+        "data":  "2026-06-16",
+        "fornecedor":  "Lero",
+        "anexo_path":  "1781624493941-xrnn7o.jpg",
+        "obs":  null,
+        "created_at":  "2026-06-16T15:41:35.879902+00:00",
+        "pago_por":  "renan"
+    },
+    {
+        "id":  "84dc69c6-55a6-4701-9ade-e02f2a9ad7f5",
+        "data":  "2026-07-20",
+        "fornecedor":  "Em a ver",
+        "anexo_path":  null,
+        "obs":  "Sobra do cheque",
+        "created_at":  "2026-07-20T21:43:54.41366+00:00",
+        "pago_por":  "outro"
+    },
+    {
+        "id":  "cc3fef87-667b-4108-8841-135eee3c7472",
+        "data":  "2026-07-20",
+        "fornecedor":  "Em a ver",
+        "anexo_path":  null,
+        "obs":  null,
+        "created_at":  "2026-07-20T21:46:08.03166+00:00",
+        "pago_por":  "outro"
+    }
+]

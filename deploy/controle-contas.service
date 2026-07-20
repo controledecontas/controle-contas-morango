@@ -1,0 +1,19 @@
+[Unit]
+Description=Controle de Contas Morango (FastAPI)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=irrigacao
+WorkingDirectory=/opt/controle-contas/backend
+Environment=CONTAS_DB=/opt/controle-contas/backend/contas.db
+Environment=CONTAS_UPLOADS=/opt/controle-contas/backend/uploads
+ExecStart=/opt/controle-contas/backend/.venv/bin/uvicorn main:app --host 0.0.0.0 --port 8001
+Restart=on-failure
+RestartSec=5
+StandardOutput=append:/opt/controle-contas/backend/uvicorn.log
+StandardError=append:/opt/controle-contas/backend/uvicorn.log
+
+[Install]
+WantedBy=multi-user.target

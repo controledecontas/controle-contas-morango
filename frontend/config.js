@@ -1,6 +1,6 @@
-// Configurações do Supabase
-// A "publishable key" (sb_publishable_...) é segura no frontend — RLS protege os dados.
+// URL do backend FastAPI. Trocar antes de deployar no gh-pages.
+// - Dev local: http://localhost:8001
+// - Producao (Pi via Tailscale Funnel porta 10000): https://raspberrypi.taileb9ced.ts.net:10000
 window.APP_CONFIG = {
-  SUPABASE_URL: "https://dqsxyjaehwpsixqqehby.supabase.co",
-  SUPABASE_KEY: "sb_publishable_4fidDEq0sAxdrr8COnsSpg_bWC42SGk",
+  API_URL: "https://raspberrypi.taileb9ced.ts.net:10000",
 };

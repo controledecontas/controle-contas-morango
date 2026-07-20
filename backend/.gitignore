@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.pyc
+contas.db
+contas.db-journal
+uploads/
